@@ -1,0 +1,14 @@
+{
+  "registration": "Registration",
+  "name": "Name",
+  "email": "Email",
+  "phone": "Phone",
+  "password": "Password",
+  "register": "Register",
+  "success": "Registration successful",
+  "enter_name": "Please enter your name",
+  "enter_email": "Enter a valid email",
+  "enter_phone": "Enter a valid phone number",
+  "password_error": "Password must be at least 6 characters",
+  "required": "Required field"
+}
