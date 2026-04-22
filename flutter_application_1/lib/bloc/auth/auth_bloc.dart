@@ -130,7 +130,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     if (state is AuthSuccess) {
       final current = state as AuthSuccess;
       try {
-        // 1. Find the user in Firebase Realtime Database to update the name
         final response = await http.get(
           Uri.parse(
             'https://myflutterproject-9958d-default-rtdb.asia-southeast1.firebasedatabase.app/user.json',
@@ -145,7 +144,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         });
 
         if (userKey != null) {
-          // 2. Update the name in the Database
           await http.patch(
             Uri.parse(
               'https://myflutterproject-9958d-default-rtdb.asia-southeast1.firebasedatabase.app/user/$userKey.json',
@@ -154,14 +152,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           );
         }
 
-        // 3. Update Local Storage
         await authRepository.saveUserData(
           email: current.email,
           name: event.newName,
           phone: current.phone,
         );
 
-        // 4. Emit new state to refresh UI
         emit(
           AuthSuccess(
             uid: current.uid,
