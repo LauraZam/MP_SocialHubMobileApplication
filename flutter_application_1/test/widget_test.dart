@@ -10,10 +10,20 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flutter_application_1/main.dart';
 
+import 'package:dio/dio.dart';
+import 'package:flutter_application_1/network/api_client.dart';
+import 'package:flutter_application_1/repositories/post_repository.dart';
+
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    final dio = Dio();
+    final apiClient = ApiClient(dio);
+    final postRepository = PostRepository();
+
+    await tester.pumpWidget(
+      MyApp(apiClient: apiClient, postRepository: postRepository),
+    );
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);

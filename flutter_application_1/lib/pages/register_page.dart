@@ -1,12 +1,8 @@
-import 'dart:convert';
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_application_1/bloc/auth/auth_bloc.dart';
-import 'package:http/http.dart' as http;
 import 'package:lottie/lottie.dart';
-import 'package:flutter_application_1/pages/main_page.dart';
 import 'package:flutter_application_1/translations/locale_keys.g.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/auth/auth_event.dart';
@@ -21,7 +17,6 @@ class RegisterFormPage extends StatefulWidget {
 
 class _RegistrationPageState extends State<RegisterFormPage> {
   bool _hidePass = true;
-
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController _nameController = TextEditingController();
@@ -30,6 +25,9 @@ class _RegistrationPageState extends State<RegisterFormPage> {
   final TextEditingController _passController = TextEditingController();
 
   final RegExp _emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+  final RegExp _passRegex = RegExp(
+    r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$',
+  );
 
   @override
   void dispose() {
@@ -41,68 +39,35 @@ class _RegistrationPageState extends State<RegisterFormPage> {
   }
 
   void _togglePassword() {
-    setState(() {
-      _hidePass = !_hidePass;
-    });
+    setState(() => _hidePass = !_hidePass);
   }
 
   void _clearName() {
-    setState(() {
-      _nameController.clear();
-    });
+    setState(() => _nameController.clear());
   }
 
-  Future<void> _submitForm() async {
+  void _submitForm() {
     if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-
-      const url = 'https://myflutterproject-9958d-default-rtdb.asia-southeast1.firebasedatabase.app/user.json';
-
-      try {
-        await http.post(
-          Uri.parse(url),
-          body: jsonEncode({
-            'name': _nameController.text.trim(),
-            'phone': _phoneController.text.trim(),
-            'Email': _emailController.text.trim(),
-          }),
-        );
-
-        if (mounted) {
-          context.read<AuthBloc>().add(
-            RegisterEvent(
-              email: _emailController.text.trim(),
-              password: _passController.text.trim(),
-            ),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
-        }
-      }
+      context.read<AuthBloc>().add(
+        RegisterEvent(
+          name: _nameController.text.trim(),
+          email: _emailController.text.trim(),
+          phone: _phoneController.text.trim(),
+          password: _passController.text.trim(),
+        ),
+      );
     }
   }
 
   String? _validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
-      return LocaleKeys.required.tr();
-    }
-    if (!_emailRegex.hasMatch(value)) {
-      return LocaleKeys.enter_email.tr();
-    }
+    if (value == null || value.isEmpty) return LocaleKeys.required.tr();
+    if (!_emailRegex.hasMatch(value)) return LocaleKeys.enter_email.tr();
     return null;
   }
 
   String? _validatePhone(String? value) {
-    if (value == null || value.isEmpty) {
-      return LocaleKeys.required.tr();
-    }
-    if (value.length < 10) {
-      return LocaleKeys.enter_phone.tr();
-    }
+    if (value == null || value.isEmpty) return LocaleKeys.required.tr();
+    if (value.length < 10) return LocaleKeys.enter_phone.tr();
     return null;
   }
 
@@ -113,68 +78,27 @@ class _RegistrationPageState extends State<RegisterFormPage> {
         title: Text(LocaleKeys.registration.tr()),
         centerTitle: true,
       ),
-
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) async {
+          print("Current Auth State: $state");
           if (state is AuthSuccess) {
-            final nameToPass = _nameController.text.trim();
-            final emailToPass = _emailController.text.trim();
-            final phoneToPass = _phoneController.text.trim();
-
-            if (mounted) {
-              // Navigator.of(context, rootNavigator: true).pop();
-
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => MainPage(
-                    name: nameToPass,
-                    email: emailToPass,
-                    phone: phoneToPass,
-                  ),
-                ),
-              );
-            }
-
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (_) => Center(
-                child: Lottie.asset(
-                  'assets/lottie/success.json',
-                  width: 200,
-                  repeat: false,
-                ),
-              ),
-            );
-
-            await Future.delayed(const Duration(seconds: 1));
-            if (context.mounted) {
-              Navigator.of(context, rootNavigator: true).pop();
-            }
+            print("Registration Successful! Attempting navigation...");
+            Navigator.pushReplacementNamed(context, '/home');
           }
 
           if (state is AuthFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Row(
-                  children: [
-                    Lottie.asset(
-                      'assets/lottie/error.json',
-                      width: 200,
-                      height: 200,
-                      repeat: false,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(child: Text(state.error)),
-                  ],
+                content: Text(
+                  state.error,
+                  style: TextStyle(color: Colors.white),
                 ),
+                backgroundColor: Colors.red,
                 behavior: SnackBarBehavior.floating,
               ),
             );
           }
         },
-
         child: Form(
           key: _formKey,
           autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -185,7 +109,6 @@ class _RegistrationPageState extends State<RegisterFormPage> {
                 controller: _nameController,
                 decoration: InputDecoration(
                   labelText: LocaleKeys.name.tr(),
-                  hintText: LocaleKeys.enter_name.tr(),
                   prefixIcon: const Icon(Icons.person),
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.delete_outline, color: Colors.red),
@@ -195,14 +118,10 @@ class _RegistrationPageState extends State<RegisterFormPage> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return LocaleKeys.required.tr();
-                  }
-                  return null;
-                },
+                validator: (val) => (val == null || val.isEmpty)
+                    ? LocaleKeys.required.tr()
+                    : null,
               ),
-
               const SizedBox(height: 12),
 
               TextFormField(
@@ -217,7 +136,6 @@ class _RegistrationPageState extends State<RegisterFormPage> {
                 ),
                 validator: _validateEmail,
               ),
-
               const SizedBox(height: 12),
 
               TextFormField(
@@ -225,7 +143,7 @@ class _RegistrationPageState extends State<RegisterFormPage> {
                 keyboardType: TextInputType.phone,
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(12),
+                  LengthLimitingTextInputFormatter(11),
                 ],
                 decoration: InputDecoration(
                   labelText: LocaleKeys.phone.tr(),
@@ -236,7 +154,6 @@ class _RegistrationPageState extends State<RegisterFormPage> {
                 ),
                 validator: _validatePhone,
               ),
-
               const SizedBox(height: 12),
 
               TextFormField(
@@ -245,7 +162,6 @@ class _RegistrationPageState extends State<RegisterFormPage> {
                 maxLength: 12,
                 decoration: InputDecoration(
                   labelText: LocaleKeys.password.tr(),
-                  hintText: LocaleKeys.password_error.tr(),
                   prefixIcon: const Icon(Icons.security),
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -257,17 +173,16 @@ class _RegistrationPageState extends State<RegisterFormPage> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
+                validator: (val) {
+                  if (val == null || val.isEmpty) {
                     return LocaleKeys.required.tr();
                   }
-                  if (value.length < 6) {
+                  if (!_passRegex.hasMatch(val)) {
                     return LocaleKeys.password_error.tr();
                   }
                   return null;
                 },
               ),
-
               const SizedBox(height: 20),
 
               BlocBuilder<AuthBloc, AuthState>(
@@ -275,11 +190,10 @@ class _RegistrationPageState extends State<RegisterFormPage> {
                   if (state is AuthLoading) {
                     return Center(
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Lottie.asset('assets/lottie/cat.json', width: 120),
-                          SizedBox(height: 16),
-                          Text("Signing in..."),
+                          const SizedBox(height: 8),
+                          Text("creating_account".tr()),
                         ],
                       ),
                     );
@@ -290,6 +204,9 @@ class _RegistrationPageState extends State<RegisterFormPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                       minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                     ),
                     child: Text(
                       LocaleKeys.register.tr(),
@@ -298,28 +215,27 @@ class _RegistrationPageState extends State<RegisterFormPage> {
                   );
                 },
               ),
-
               const SizedBox(height: 20),
-
+              TextButton(
+                onPressed: () {
+                  Navigator.pushReplacementNamed(context, '/login');
+                },
+                child: Text("already_have_account".tr()),
+              ),
+              const SizedBox(height: 20),
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  ElevatedButton(
-                    onPressed: () async {
-                      await context.setLocale(const Locale('ru'));
-                    },
+                  TextButton(
+                    onPressed: () => context.setLocale(const Locale('ru')),
                     child: const Text('RU'),
                   ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      await context.setLocale(const Locale('kk'));
-                    },
+                  TextButton(
+                    onPressed: () => context.setLocale(const Locale('kk')),
                     child: const Text('KZ'),
                   ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      await context.setLocale(const Locale('en'));
-                    },
+                  TextButton(
+                    onPressed: () => context.setLocale(const Locale('en')),
                     child: const Text('EN'),
                   ),
                 ],

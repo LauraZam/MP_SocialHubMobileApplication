@@ -1,6 +1,18 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'rest_client.dart';
+part of 'api_client.dart';
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+Quote _$QuoteFromJson(Map<String, dynamic> json) =>
+    Quote(text: json['q'] as String, author: json['a'] as String);
+
+Map<String, dynamic> _$QuoteToJson(Quote instance) => <String, dynamic>{
+  'q': instance.text,
+  'a': instance.author,
+};
 
 // dart format off
 
@@ -10,9 +22,9 @@ part of 'rest_client.dart';
 
 // ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers,unused_element,unnecessary_string_interpolations,unused_element_parameter,avoid_unused_constructor_parameters,unreachable_from_main
 
-class _RestClient implements RestClient {
-  _RestClient(this._dio, {this.baseUrl, this.errorLogger}) {
-    baseUrl ??= 'https://jsonplaceholder.typicode.com';
+class _ApiClient implements ApiClient {
+  _ApiClient(this._dio, {this.baseUrl, this.errorLogger}) {
+    baseUrl ??= 'https://zenquotes.io/api/';
   }
 
   final Dio _dio;
@@ -22,53 +34,26 @@ class _RestClient implements RestClient {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<Profile> getProfile() async {
+  Future<List<Quote>> getQuotesList() async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<Profile>(
+    final _options = _setStreamType<List<Quote>>(
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/posts/1',
-            queryParameters: queryParameters,
-            data: _data,
-          )
-          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
-    );
-    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late Profile _value;
-    try {
-      _value = Profile.fromJson(_result.data!);
-    } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options, response: _result);
-      rethrow;
-    }
-    return _value;
-  }
-
-  @override
-  Future<List<Profile>> getListData() async {
-    final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{};
-    const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<List<Profile>>(
-      Options(method: 'GET', headers: _headers, extra: _extra)
-          .compose(
-            _dio.options,
-            '/posts',
+            'quotes',
             queryParameters: queryParameters,
             data: _data,
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
     final _result = await _dio.fetch<List<dynamic>>(_options);
-    late List<Profile> _value;
+    late List<Quote> _value;
     try {
       _value = _result.data!
-          .map((dynamic i) => Profile.fromJson(i as Map<String, dynamic>))
+          .map((dynamic i) => Quote.fromJson(i as Map<String, dynamic>))
           .toList();
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options, response: _result);
