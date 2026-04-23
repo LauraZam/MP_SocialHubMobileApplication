@@ -80,9 +80,7 @@ class _RegistrationPageState extends State<RegisterFormPage> {
       ),
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) async {
-          print("Current Auth State: $state");
           if (state is AuthSuccess) {
-            print("Registration Successful! Attempting navigation...");
             Navigator.pushReplacementNamed(context, '/home');
           }
 

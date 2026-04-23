@@ -9,6 +9,8 @@ import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_state.dart';
 
 class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
   @override
   Widget build(BuildContext context) {
     final authState = context.read<AuthBloc>().state;
